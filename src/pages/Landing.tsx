@@ -15,6 +15,9 @@ const Landing = () => {
             <span className="text-xl font-bold">HireHub</span>
           </Link>
           <nav className="flex items-center gap-4">
+            <Link to="/why-us">
+              <Button variant="ghost">Why Choose Us?</Button>
+            </Link>
             <Link to="/auth">
               <Button variant="ghost">Sign In</Button>
             </Link>
