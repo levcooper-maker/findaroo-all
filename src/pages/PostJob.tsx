@@ -55,8 +55,10 @@ const PostJob = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Post job form submitted with data:", formData);
     
     if (!user) {
+      console.error("No user found");
       toast({
         title: "Authentication required",
         description: "Please sign in to post a job",
@@ -65,12 +67,15 @@ const PostJob = () => {
       return;
     }
 
+    console.log("User authenticated:", user.id);
     setLoading(true);
 
     try {
+      console.log("Validating form data...");
       const validated = jobSchema.parse(formData);
+      console.log("Validation passed:", validated);
       
-      const { error } = await supabase.from("jobs").insert({
+      const jobData = {
         user_id: user.id,
         title: validated.title,
         company: validated.company,
@@ -85,10 +90,19 @@ const PostJob = () => {
         responsibilities: validated.responsibilities,
         benefits: validated.benefits || null,
         status: "active",
-      });
+      };
 
-      if (error) throw error;
+      console.log("Inserting job into database:", jobData);
+      const { data, error } = await supabase.from("jobs").insert(jobData).select();
 
+      console.log("Database response:", { data, error });
+
+      if (error) {
+        console.error("Database error:", error);
+        throw error;
+      }
+
+      console.log("Job posted successfully:", data);
       toast({
         title: "Job Posted!",
         description: "Your job listing is now live",
@@ -96,11 +110,21 @@ const PostJob = () => {
       navigate("/jobs");
     } catch (error: any) {
       console.error("Error posting job:", error);
-      toast({
-        title: "Failed to post job",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
+      
+      if (error.name === "ZodError") {
+        console.error("Validation errors:", error.errors);
+        toast({
+          title: "Validation Error",
+          description: error.errors?.[0]?.message || "Please check all required fields",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Failed to post job",
+          description: error.message || "Please try again",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
