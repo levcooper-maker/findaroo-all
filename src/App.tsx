@@ -16,6 +16,7 @@ import Interviews from "./pages/Interviews";
 import Settings from "./pages/Settings";
 import JobPostingGenerator from "./pages/JobPostingGenerator";
 import ResumeBuilder from "./pages/ResumeBuilder";
+import PostJob from "./pages/PostJob";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -87,6 +88,16 @@ const App = () => (
                 <ProtectedRoute>
                   <Layout>
                     <ResumeBuilder />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/post-job"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <PostJob />
                   </Layout>
                 </ProtectedRoute>
               }
