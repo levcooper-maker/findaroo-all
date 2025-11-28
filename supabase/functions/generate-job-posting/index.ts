@@ -7,14 +7,14 @@ const corsHeaders = {
 };
 
 const jobPostingSchema = z.object({
-  jobTitle: z.string().trim().min(1).max(200),
-  company: z.string().trim().min(1).max(200),
-  location: z.string().trim().min(1).max(200),
-  jobType: z.string().trim().min(1).max(100),
-  department: z.string().trim().min(1).max(200),
+  jobTitle: z.string().trim().min(1, "Job title is required").max(200),
+  company: z.string().trim().min(1, "Company name is required").max(200),
+  location: z.string().trim().max(200).default(""),
+  jobType: z.string().trim().max(100).default("Full-time"),
+  department: z.string().trim().max(200).default(""),
   salary: z.string().trim().max(200).optional(),
-  requirements: z.string().trim().min(1).max(5000),
-  responsibilities: z.string().trim().min(1).max(5000),
+  requirements: z.string().trim().min(1, "Requirements are required").max(5000),
+  responsibilities: z.string().trim().min(1, "Responsibilities are required").max(5000),
 });
 
 serve(async (req) => {

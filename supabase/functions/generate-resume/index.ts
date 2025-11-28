@@ -7,15 +7,15 @@ const corsHeaders = {
 };
 
 const resumeSchema = z.object({
-  fullName: z.string().trim().min(1).max(100),
-  email: z.string().trim().email().max(255),
-  phone: z.string().trim().max(50).optional(),
-  location: z.string().trim().max(200).optional(),
-  targetRole: z.string().trim().max(200).optional(),
-  experience: z.string().trim().max(10000).optional(),
-  education: z.string().trim().max(5000).optional(),
-  skills: z.string().trim().max(2000).optional(),
-  achievements: z.string().trim().max(5000).optional(),
+  fullName: z.string().trim().min(1, "Full name is required").max(100),
+  email: z.string().trim().email("Invalid email address").max(255),
+  phone: z.string().trim().max(50).default(""),
+  location: z.string().trim().max(200).default(""),
+  targetRole: z.string().trim().max(200).default(""),
+  experience: z.string().trim().max(10000).default(""),
+  education: z.string().trim().max(5000).default(""),
+  skills: z.string().trim().max(2000).default(""),
+  achievements: z.string().trim().max(5000).default(""),
 });
 
 serve(async (req) => {
