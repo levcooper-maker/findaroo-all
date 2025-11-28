@@ -1,4 +1,3 @@
-import { Layout } from "@/components/Layout";
 import { StatCard } from "@/components/StatCard";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -86,8 +85,7 @@ const getStatusBadge = (status: string) => {
 
 const Dashboard = () => {
   return (
-    <Layout>
-      <div className="space-y-8 animate-in fade-in-50 duration-500">
+    <div className="space-y-8 animate-in fade-in-50 duration-500">
         {/* Header */}
         <div>
           <h1 className="text-4xl font-bold">Dashboard</h1>
@@ -220,7 +218,7 @@ const Dashboard = () => {
           </div>
         </Card>
       </div>
-    </Layout>
+    </div>
   );
 };
 
