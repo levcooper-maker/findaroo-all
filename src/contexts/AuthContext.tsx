@@ -107,7 +107,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) throw error;
-      navigate("/");
+      navigate("/dashboard");
       return { error: null };
     } catch (error) {
       return { error: error as Error };
