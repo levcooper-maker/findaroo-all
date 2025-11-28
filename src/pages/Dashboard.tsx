@@ -218,8 +218,7 @@ const Dashboard = () => {
           </div>
         </Card>
       </div>
-    </div>
-  );
-};
-
-export default Dashboard;
+    );
+  };
+  
+  export default Dashboard;
