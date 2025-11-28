@@ -9,6 +9,8 @@ import Jobs from "./pages/Jobs";
 import Candidates from "./pages/Candidates";
 import Interviews from "./pages/Interviews";
 import Settings from "./pages/Settings";
+import JobPostingGenerator from "./pages/JobPostingGenerator";
+import ResumeBuilder from "./pages/ResumeBuilder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +27,8 @@ const App = () => (
             <Route path="/jobs" element={<Jobs />} />
             <Route path="/candidates" element={<Candidates />} />
             <Route path="/interviews" element={<Interviews />} />
+            <Route path="/ai-job-posting" element={<JobPostingGenerator />} />
+            <Route path="/ai-resume-builder" element={<ResumeBuilder />} />
             <Route path="/settings" element={<Settings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

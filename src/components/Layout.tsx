@@ -7,7 +7,9 @@ import {
   Calendar,
   Settings,
   Menu,
-  X
+  X,
+  Sparkles,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -17,6 +19,8 @@ const navigation = [
   { name: "Jobs", href: "/jobs", icon: Briefcase },
   { name: "Candidates", href: "/candidates", icon: Users },
   { name: "Interviews", href: "/interviews", icon: Calendar },
+  { name: "AI Job Posting", href: "/ai-job-posting", icon: Sparkles },
+  { name: "AI Resume Builder", href: "/ai-resume-builder", icon: FileText },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 

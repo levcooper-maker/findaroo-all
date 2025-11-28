@@ -1,0 +1,7 @@
+project_id = "etrgckxcxpwkjbnxmvmf"
+
+[functions.generate-job-posting]
+verify_jwt = false
+
+[functions.generate-resume]
+verify_jwt = false

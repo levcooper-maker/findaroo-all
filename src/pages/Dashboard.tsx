@@ -1,4 +1,5 @@
 import { StatCard } from "@/components/StatCard";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +10,8 @@ import {
   TrendingUp,
   Clock,
   CheckCircle2,
-  XCircle
+  Sparkles,
+  FileText
 } from "lucide-react";
 
 const recentApplications = [
@@ -84,6 +86,8 @@ const getStatusBadge = (status: string) => {
 };
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  
   return (
     <div className="space-y-8 animate-in fade-in-50 duration-500">
         {/* Header */}
@@ -121,6 +125,39 @@ const Dashboard = () => {
             trend={{ value: 20, isPositive: true }}
           />
         </div>
+
+        {/* AI Tools Banner */}
+        <Card className="p-6 bg-gradient-primary text-primary-foreground">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-6 w-6" />
+                <h2 className="text-2xl font-bold">AI-Powered Tools</h2>
+              </div>
+              <p className="text-primary-foreground/90">
+                Speed up your hiring process with intelligent automation
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => navigate("/ai-job-posting")}
+                className="bg-white/20 hover:bg-white/30 text-primary-foreground border-white/20"
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                Generate Job Posting
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => navigate("/ai-resume-builder")}
+                className="bg-white/20 hover:bg-white/30 text-primary-foreground border-white/20"
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Build Resume
+              </Button>
+            </div>
+          </div>
+        </Card>
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Recent Applications */}
