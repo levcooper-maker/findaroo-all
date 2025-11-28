@@ -1,9 +1,22 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const resumeSchema = z.object({
+  fullName: z.string().trim().min(1).max(100),
+  email: z.string().trim().email().max(255),
+  phone: z.string().trim().max(50).optional(),
+  location: z.string().trim().max(200).optional(),
+  targetRole: z.string().trim().max(200).optional(),
+  experience: z.string().trim().max(10000).optional(),
+  education: z.string().trim().max(5000).optional(),
+  skills: z.string().trim().max(2000).optional(),
+  achievements: z.string().trim().max(5000).optional(),
+});
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -11,6 +24,16 @@ serve(async (req) => {
   }
 
   try {
+    const body = await req.json();
+    const validationResult = resumeSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid input", details: validationResult.error.format() }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { 
       fullName, 
       email, 
@@ -21,14 +44,14 @@ serve(async (req) => {
       education, 
       skills, 
       achievements 
-    } = await req.json();
+    } = validationResult.data;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Generating resume for:", { fullName, targetRole });
+    console.log("Resume generation request received");
 
     const systemPrompt = `You are an expert career coach and resume writer with years of experience crafting ATS-optimized resumes. Create professional resumes that:
 - Use action verbs and quantifiable achievements
