@@ -31,7 +31,7 @@ const signInSchema = z.object({
 });
 
 const Auth = () => {
-  const [isSignUp, setIsSignUp] = useState(true);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [userType, setUserType] = useState<"employer" | "job_seeker">("job_seeker");
   const [formData, setFormData] = useState({
     email: "",
@@ -431,7 +431,7 @@ const Auth = () => {
               ) : (
                 <>
                   Don't have an account?{" "}
-                  <span className="font-medium text-primary">Sign up</span>
+                  <span className="font-medium text-primary">Create new user</span>
                 </>
               )}
             </button>
