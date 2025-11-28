@@ -111,6 +111,19 @@ const Settings = () => {
                 </div>
                 <Button variant="outline" onClick={() => handleIntegrationConnect("Microsoft Outlook")}>Connect</Button>
               </div>
+
+              <div className="flex items-center justify-between rounded-lg border border-border p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#000000]">
+                    <Calendar className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Apple Calendar</p>
+                    <p className="text-sm text-muted-foreground">iCloud calendar integration</p>
+                  </div>
+                </div>
+                <Button variant="outline" onClick={() => handleIntegrationConnect("Apple Calendar")}>Connect</Button>
+              </div>
             </div>
           </Card>
 
