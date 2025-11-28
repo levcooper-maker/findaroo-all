@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      jobs: {
+        Row: {
+          applicants_count: number | null
+          benefits: string | null
+          company: string
+          created_at: string
+          department: string | null
+          description: string
+          experience_level: string | null
+          id: string
+          job_type: string | null
+          location: string | null
+          requirements: string
+          responsibilities: string
+          salary: string | null
+          status: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          work_arrangement: string | null
+        }
+        Insert: {
+          applicants_count?: number | null
+          benefits?: string | null
+          company: string
+          created_at?: string
+          department?: string | null
+          description: string
+          experience_level?: string | null
+          id?: string
+          job_type?: string | null
+          location?: string | null
+          requirements: string
+          responsibilities: string
+          salary?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          work_arrangement?: string | null
+        }
+        Update: {
+          applicants_count?: number | null
+          benefits?: string | null
+          company?: string
+          created_at?: string
+          department?: string | null
+          description?: string
+          experience_level?: string | null
+          id?: string
+          job_type?: string | null
+          location?: string | null
+          requirements?: string
+          responsibilities?: string
+          salary?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          work_arrangement?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           company_name: string | null

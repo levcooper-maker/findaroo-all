@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -221,6 +222,7 @@ const allJobs: Job[] = [
 ];
 
 const Jobs = () => {
+  const navigate = useNavigate();
   const [selectedIndustry, setSelectedIndustry] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -249,7 +251,10 @@ const Jobs = () => {
             Intelligent job aggregation with duplicate detection and quality scoring
           </p>
         </div>
-        <Button className="bg-gradient-primary shadow-lg hover:shadow-xl transition-smooth">
+        <Button 
+          className="bg-gradient-primary shadow-lg hover:shadow-xl transition-smooth"
+          onClick={() => navigate("/post-job")}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Post New Job
         </Button>
