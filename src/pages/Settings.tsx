@@ -4,24 +4,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Settings as SettingsIcon,
   Bell,
   Mail,
   Calendar,
-  Zap
+  Zap,
+  Sparkles
 } from "lucide-react";
 
 const Settings = () => {
   const { toast } = useToast();
-
-  const handleIntegrationConnect = (platform: string) => {
-    toast({
-      title: "Coming Soon",
-      description: `${platform} integration is currently under development. Stay tuned!`,
-    });
-  };
 
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-500">
@@ -46,7 +41,20 @@ const Settings = () => {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="rounded-lg border border-accent/20 bg-accent/5 p-6 mb-4">
+              <div className="flex items-start gap-3">
+                <Sparkles className="h-5 w-5 text-accent mt-0.5" />
+                <div>
+                  <h3 className="font-semibold mb-1">Coming Soon</h3>
+                  <p className="text-sm text-muted-foreground">
+                    External integrations require OAuth configuration and API credentials. 
+                    These features are planned for future releases.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 opacity-50">
               <div className="flex items-center justify-between rounded-lg border border-border p-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0077B5]">
@@ -57,7 +65,7 @@ const Settings = () => {
                     <p className="text-sm text-muted-foreground">Import jobs and candidates</p>
                   </div>
                 </div>
-                <Button variant="outline" onClick={() => handleIntegrationConnect("LinkedIn")}>Connect</Button>
+                <Badge variant="secondary">Planned</Badge>
               </div>
 
               <div className="flex items-center justify-between rounded-lg border border-border p-4">
@@ -70,10 +78,10 @@ const Settings = () => {
                     <p className="text-sm text-muted-foreground">Sync job postings</p>
                   </div>
                 </div>
-                <Button variant="outline" onClick={() => handleIntegrationConnect("Indeed")}>Connect</Button>
+                <Badge variant="secondary">Planned</Badge>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border border-accent/20 bg-accent/5 p-4">
+              <div className="flex items-center justify-between rounded-lg border border-border p-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#006BFF]">
                     <Calendar className="h-5 w-5 text-white" />
@@ -83,7 +91,7 @@ const Settings = () => {
                     <p className="text-sm text-muted-foreground">Schedule interviews automatically</p>
                   </div>
                 </div>
-                <Button className="bg-gradient-primary" onClick={() => handleIntegrationConnect("Calendly")}>Connect</Button>
+                <Badge variant="secondary">Planned</Badge>
               </div>
 
               <div className="flex items-center justify-between rounded-lg border border-border p-4">
@@ -96,7 +104,7 @@ const Settings = () => {
                     <p className="text-sm text-muted-foreground">Calendar and email integration</p>
                   </div>
                 </div>
-                <Button variant="outline" onClick={() => handleIntegrationConnect("Google Workspace")}>Connect</Button>
+                <Badge variant="secondary">Planned</Badge>
               </div>
 
               <div className="flex items-center justify-between rounded-lg border border-border p-4">
@@ -109,7 +117,7 @@ const Settings = () => {
                     <p className="text-sm text-muted-foreground">Calendar integration</p>
                   </div>
                 </div>
-                <Button variant="outline" onClick={() => handleIntegrationConnect("Microsoft Outlook")}>Connect</Button>
+                <Badge variant="secondary">Planned</Badge>
               </div>
 
               <div className="flex items-center justify-between rounded-lg border border-border p-4">
@@ -122,7 +130,7 @@ const Settings = () => {
                     <p className="text-sm text-muted-foreground">iCloud calendar integration</p>
                   </div>
                 </div>
-                <Button variant="outline" onClick={() => handleIntegrationConnect("Apple Calendar")}>Connect</Button>
+                <Badge variant="secondary">Planned</Badge>
               </div>
             </div>
           </Card>
