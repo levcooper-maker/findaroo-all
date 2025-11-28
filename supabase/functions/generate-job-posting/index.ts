@@ -1,9 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const jobPostingSchema = z.object({
+  jobTitle: z.string().trim().min(1).max(200),
+  company: z.string().trim().min(1).max(200),
+  location: z.string().trim().min(1).max(200),
+  jobType: z.string().trim().min(1).max(100),
+  department: z.string().trim().min(1).max(200),
+  salary: z.string().trim().max(200).optional(),
+  requirements: z.string().trim().min(1).max(5000),
+  responsibilities: z.string().trim().min(1).max(5000),
+});
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -11,14 +23,24 @@ serve(async (req) => {
   }
 
   try {
-    const { jobTitle, company, location, jobType, department, salary, requirements, responsibilities } = await req.json();
+    const body = await req.json();
+    const validationResult = jobPostingSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid input", details: validationResult.error.format() }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { jobTitle, company, location, jobType, department, salary, requirements, responsibilities } = validationResult.data;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Generating job posting for:", { jobTitle, company });
+    console.log("Job posting generation request received");
 
     const systemPrompt = `You are an expert HR professional and copywriter specializing in creating compelling job postings. Create engaging, professional job descriptions that:
 - Highlight the company's unique value proposition
