@@ -208,8 +208,7 @@ const Candidates = () => {
           ))}
         </div>
       </div>
-    </div>
-  );
-};
-
-export default Candidates;
+    );
+  };
+  
+  export default Candidates;

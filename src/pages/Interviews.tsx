@@ -237,8 +237,7 @@ const Interviews = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
-};
-
-export default Interviews;
+    );
+  };
+  
+  export default Interviews;

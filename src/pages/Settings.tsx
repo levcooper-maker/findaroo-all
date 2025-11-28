@@ -187,8 +187,7 @@ const Settings = () => {
           </div>
         </Card>
       </div>
-    </div>
-  );
-};
-
-export default Settings;
+    );
+  };
+  
+  export default Settings;
