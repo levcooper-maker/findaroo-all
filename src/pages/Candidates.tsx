@@ -1,7 +1,11 @@
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
   Filter,
@@ -9,103 +13,82 @@ import {
   Phone,
   MapPin,
   Star,
-  ExternalLink
+  ExternalLink,
+  Loader2
 } from "lucide-react";
-
-const candidates = [
-  {
-    id: 1,
-    name: "Sarah Johnson",
-    email: "sarah.j@email.com",
-    phone: "+1 (555) 123-4567",
-    position: "Senior Frontend Developer",
-    stage: "Interview",
-    rating: 5,
-    location: "San Francisco, CA",
-    appliedDate: "2024-01-15",
-    avatar: "SJ",
-    skills: ["React", "TypeScript", "Node.js"]
-  },
-  {
-    id: 2,
-    name: "Michael Chen",
-    email: "m.chen@email.com",
-    phone: "+1 (555) 234-5678",
-    position: "Product Designer",
-    stage: "Screening",
-    rating: 4,
-    location: "New York, NY",
-    appliedDate: "2024-01-14",
-    avatar: "MC",
-    skills: ["Figma", "UI/UX", "Prototyping"]
-  },
-  {
-    id: 3,
-    name: "Emily Rodriguez",
-    email: "emily.r@email.com",
-    phone: "+1 (555) 345-6789",
-    position: "Full Stack Engineer",
-    stage: "Review",
-    rating: 5,
-    location: "Remote",
-    appliedDate: "2024-01-13",
-    avatar: "ER",
-    skills: ["Python", "Django", "React"]
-  },
-  {
-    id: 4,
-    name: "David Kim",
-    email: "david.kim@email.com",
-    phone: "+1 (555) 456-7890",
-    position: "DevOps Engineer",
-    stage: "Interview",
-    rating: 4,
-    location: "Austin, TX",
-    appliedDate: "2024-01-12",
-    avatar: "DK",
-    skills: ["AWS", "Docker", "Kubernetes"]
-  },
-  {
-    id: 5,
-    name: "Alex Turner",
-    email: "alex.t@email.com",
-    phone: "+1 (555) 567-8901",
-    position: "Backend Developer",
-    stage: "Offer",
-    rating: 5,
-    location: "Seattle, WA",
-    appliedDate: "2024-01-10",
-    avatar: "AT",
-    skills: ["Java", "Spring", "PostgreSQL"]
-  },
-  {
-    id: 6,
-    name: "Jessica Martinez",
-    email: "j.martinez@email.com",
-    phone: "+1 (555) 678-9012",
-    position: "Marketing Manager",
-    stage: "Screening",
-    rating: 3,
-    location: "Miami, FL",
-    appliedDate: "2024-01-11",
-    avatar: "JM",
-    skills: ["SEO", "Content", "Analytics"]
-  }
-];
 
 const getStageBadge = (stage: string) => {
   const variants: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
-    Interview: "default",
-    Screening: "secondary",
-    Review: "outline",
-    Offer: "default",
-    Rejected: "destructive"
+    interview: "default",
+    screening: "secondary",
+    review: "outline",
+    offer: "default",
+    rejected: "destructive"
   };
   
-  return <Badge variant={variants[stage] || "outline"}>{stage}</Badge>;
+  const displayNames: Record<string, string> = {
+    interview: "Interview",
+    screening: "Screening",
+    review: "Review",
+    offer: "Offer",
+    rejected: "Rejected"
+  };
+  
+  return <Badge variant={variants[stage] || "outline"}>{displayNames[stage] || stage}</Badge>;
 };
 
 const Candidates = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [candidates, setCandidates] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      fetchCandidates();
+    }
+  }, [user]);
+
+  const fetchCandidates = async () => {
+    try {
+      setLoading(true);
+
+      // Get user's jobs first
+      const { data: jobsData } = await supabase
+        .from("jobs")
+        .select("id")
+        .eq("user_id", user!.id);
+
+      const jobIds = jobsData?.map(j => j.id) || [];
+
+      if (jobIds.length > 0) {
+        // Fetch applications for these jobs
+        const { data, error } = await supabase
+          .from("applications")
+          .select("*, jobs(title, company)")
+          .in("job_id", jobIds)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        setCandidates(data || []);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error loading candidates",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredCandidates = candidates.filter(candidate =>
+    candidate.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    candidate.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    candidate.jobs?.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-500">
         {/* Header */}
@@ -121,10 +104,12 @@ const Candidates = () => {
           <div className="flex flex-col gap-4 sm:flex-row">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search by name, email, or position..."
-                className="pl-9"
-              />
+            <Input
+              placeholder="Search by name, email, or position..."
+              className="pl-9"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
             </div>
             <Button variant="outline">
               <Filter className="mr-2 h-4 w-4" />
@@ -134,79 +119,108 @@ const Candidates = () => {
         </Card>
 
         {/* Candidates List */}
-        <div className="grid gap-4">
-          {candidates.map((candidate) => (
-            <Card key={candidate.id} className="p-6 card-hover">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-                {/* Candidate Info */}
-                <div className="flex flex-1 items-start gap-4">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-primary text-primary-foreground">
-                    <span className="text-lg font-semibold">{candidate.avatar}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold">{candidate.name}</h3>
-                        <p className="text-sm text-muted-foreground">{candidate.position}</p>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < candidate.rating
-                                ? "fill-accent text-accent"
-                                : "text-muted"
-                            }`}
-                          />
-                        ))}
-                      </div>
+        {loading ? (
+          <Card className="p-12 text-center">
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+            <p className="mt-4 text-muted-foreground">Loading candidates...</p>
+          </Card>
+        ) : filteredCandidates.length === 0 ? (
+          <Card className="p-12 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+              <Search className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="mt-4 text-lg font-semibold">No candidates found</h3>
+            <p className="mt-2 text-muted-foreground">
+              {candidates.length === 0 
+                ? "No applications received yet"
+                : "Try adjusting your search"}
+            </p>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {filteredCandidates.map((candidate) => (
+              <Card key={candidate.id} className="p-6 card-hover">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+                  {/* Candidate Info */}
+                  <div className="flex flex-1 items-start gap-4">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-primary text-primary-foreground">
+                      <span className="text-lg font-semibold">
+                        {candidate.full_name.split(" ").map((n: string) => n[0]).join("")}
+                      </span>
                     </div>
-                    
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {candidate.skills.map((skill) => (
-                        <Badge key={skill} variant="secondary" className="text-xs">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="text-lg font-semibold">{candidate.full_name}</h3>
+                          <p className="text-sm text-muted-foreground">{candidate.jobs?.title || "Unknown Position"}</p>
+                        </div>
+                        {candidate.rating && (
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-4 w-4 ${
+                                  i < candidate.rating
+                                    ? "fill-accent text-accent"
+                                    : "text-muted"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
 
-                    <div className="mt-3 space-y-1 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        <span>{candidate.email}</span>
+                      <div className="mt-3 space-y-1 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          <span>{candidate.email}</span>
+                        </div>
+                        {candidate.phone && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4" />
+                            <span>{candidate.phone}</span>
+                          </div>
+                        )}
+                        {candidate.cover_letter && (
+                          <p className="mt-2 text-sm line-clamp-2">{candidate.cover_letter}</p>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4" />
-                        <span>{candidate.phone}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>{candidate.location}</span>
-                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-col gap-3 lg:w-48">
+                    {getStageBadge(candidate.status)}
+                    <p className="text-xs text-muted-foreground">
+                      Applied: {new Date(candidate.created_at).toLocaleDateString()}
+                    </p>
+                    <div className="flex gap-2">
+                      {candidate.resume_url && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          asChild
+                        >
+                          <a href={candidate.resume_url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      )}
+                      <Button 
+                        size="sm" 
+                        className="flex-1 bg-gradient-primary"
+                        onClick={() => window.location.href = `mailto:${candidate.email}`}
+                      >
+                        Contact
+                      </Button>
                     </div>
                   </div>
                 </div>
-
-                {/* Actions */}
-                <div className="flex flex-col gap-3 lg:w-48">
-                  {getStageBadge(candidate.stage)}
-                  <p className="text-xs text-muted-foreground">
-                    Applied: {new Date(candidate.appliedDate).toLocaleDateString()}
-                  </p>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" className="flex-1 bg-gradient-primary">
-                      View Profile
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     );
   };

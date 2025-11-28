@@ -1,8 +1,11 @@
+import { useState, useEffect } from "react";
 import { StatCard } from "@/components/StatCard";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Briefcase, 
   Users, 
@@ -11,74 +14,17 @@ import {
   Clock,
   CheckCircle2,
   Sparkles,
-  FileText
+  FileText,
+  Loader2
 } from "lucide-react";
-
-const recentApplications = [
-  {
-    id: 1,
-    name: "Sarah Johnson",
-    position: "Senior Frontend Developer",
-    status: "interview",
-    appliedDate: "2 hours ago",
-    avatar: "SJ"
-  },
-  {
-    id: 2,
-    name: "Michael Chen",
-    position: "Product Designer",
-    status: "screening",
-    appliedDate: "5 hours ago",
-    avatar: "MC"
-  },
-  {
-    id: 3,
-    name: "Emily Rodriguez",
-    position: "Full Stack Engineer",
-    status: "review",
-    appliedDate: "1 day ago",
-    avatar: "ER"
-  },
-  {
-    id: 4,
-    name: "David Kim",
-    position: "DevOps Engineer",
-    status: "interview",
-    appliedDate: "2 days ago",
-    avatar: "DK"
-  }
-];
-
-const upcomingInterviews = [
-  {
-    id: 1,
-    candidate: "Sarah Johnson",
-    position: "Senior Frontend Developer",
-    time: "Today, 2:00 PM",
-    type: "Zoom"
-  },
-  {
-    id: 2,
-    candidate: "David Kim",
-    position: "DevOps Engineer",
-    time: "Tomorrow, 10:00 AM",
-    type: "In-person"
-  },
-  {
-    id: 3,
-    candidate: "Alex Turner",
-    position: "Backend Developer",
-    time: "Tomorrow, 3:30 PM",
-    type: "Zoom"
-  }
-];
 
 const getStatusBadge = (status: string) => {
   const variants: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
     interview: { label: "Interview", variant: "default" },
     screening: { label: "Screening", variant: "secondary" },
     review: { label: "Review", variant: "outline" },
-    rejected: { label: "Rejected", variant: "destructive" }
+    rejected: { label: "Rejected", variant: "destructive" },
+    offer: { label: "Offer", variant: "default" }
   };
   
   const config = variants[status] || variants.review;
@@ -87,6 +33,91 @@ const getStatusBadge = (status: string) => {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [stats, setStats] = useState({
+    activeJobs: 0,
+    totalApplicants: 0,
+    interviewsScheduled: 0,
+    offersSent: 0
+  });
+  const [recentApplications, setRecentApplications] = useState<any[]>([]);
+  const [upcomingInterviews, setUpcomingInterviews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchDashboardData();
+    }
+  }, [user]);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch active jobs count
+      const { count: jobsCount } = await supabase
+        .from("jobs")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user!.id)
+        .eq("status", "active");
+
+      // Fetch all applications for user's jobs
+      const { data: jobsData } = await supabase
+        .from("jobs")
+        .select("id")
+        .eq("user_id", user!.id);
+
+      const jobIds = jobsData?.map(j => j.id) || [];
+
+      if (jobIds.length > 0) {
+        // Fetch applications
+        const { data: applicationsData, count: applicationsCount } = await supabase
+          .from("applications")
+          .select("*, jobs(title)", { count: "exact" })
+          .in("job_id", jobIds)
+          .order("created_at", { ascending: false })
+          .limit(4);
+
+        // Fetch interviews
+        const { data: interviewsData, count: interviewsCount } = await supabase
+          .from("interviews")
+          .select("*, jobs(title)", { count: "exact" })
+          .in("job_id", jobIds)
+          .eq("status", "scheduled")
+          .gte("interview_date", new Date().toISOString().split("T")[0])
+          .order("interview_date", { ascending: true })
+          .limit(3);
+
+        // Count offers sent
+        const { count: offersCount } = await supabase
+          .from("applications")
+          .select("*", { count: "exact", head: true })
+          .in("job_id", jobIds)
+          .eq("status", "offer");
+
+        setStats({
+          activeJobs: jobsCount || 0,
+          totalApplicants: applicationsCount || 0,
+          interviewsScheduled: interviewsCount || 0,
+          offersSent: offersCount || 0
+        });
+
+        setRecentApplications(applicationsData || []);
+        setUpcomingInterviews(interviewsData || []);
+      } else {
+        setStats({
+          activeJobs: 0,
+          totalApplicants: 0,
+          interviewsScheduled: 0,
+          offersSent: 0
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   return (
     <div className="space-y-8 animate-in fade-in-50 duration-500">
@@ -99,32 +130,39 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Active Jobs"
-            value={12}
-            icon={Briefcase}
-            trend={{ value: 8, isPositive: true }}
-          />
-          <StatCard
-            title="Total Applicants"
-            value={248}
-            icon={Users}
-            trend={{ value: 12, isPositive: true }}
-          />
-          <StatCard
-            title="Interviews Scheduled"
-            value={18}
-            icon={Calendar}
-            trend={{ value: 5, isPositive: true }}
-          />
-          <StatCard
-            title="Offers Sent"
-            value={6}
-            icon={TrendingUp}
-            trend={{ value: 20, isPositive: true }}
-          />
-        </div>
+        {loading ? (
+          <Card className="p-12 text-center">
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+            <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
+          </Card>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              title="Active Jobs"
+              value={stats.activeJobs}
+              icon={Briefcase}
+              trend={{ value: 8, isPositive: true }}
+            />
+            <StatCard
+              title="Total Applicants"
+              value={stats.totalApplicants}
+              icon={Users}
+              trend={{ value: 12, isPositive: true }}
+            />
+            <StatCard
+              title="Interviews Scheduled"
+              value={stats.interviewsScheduled}
+              icon={Calendar}
+              trend={{ value: 5, isPositive: true }}
+            />
+            <StatCard
+              title="Offers Sent"
+              value={stats.offersSent}
+              icon={TrendingUp}
+              trend={{ value: 20, isPositive: true }}
+            />
+          </div>
+        )}
 
         {/* AI Tools Banner */}
         <Card className="p-6 bg-gradient-primary text-primary-foreground">
@@ -164,27 +202,37 @@ const Dashboard = () => {
           <Card className="p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold">Recent Applications</h2>
-              <Button variant="outline" size="sm">View All</Button>
+              <Button variant="outline" size="sm" onClick={() => navigate("/candidates")}>View All</Button>
             </div>
             <div className="space-y-4">
-              {recentApplications.map((app) => (
-                <div
-                  key={app.id}
-                  className="flex items-center gap-4 rounded-lg border border-border p-4 transition-smooth hover:border-primary/50 hover:shadow-md"
-                >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-primary text-primary-foreground">
-                    <span className="text-sm font-semibold">{app.avatar}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{app.name}</p>
-                    <p className="text-sm text-muted-foreground truncate">{app.position}</p>
-                  </div>
-                  <div className="text-right">
-                    {getStatusBadge(app.status)}
-                    <p className="mt-1 text-xs text-muted-foreground">{app.appliedDate}</p>
-                  </div>
+              {recentApplications.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Users className="mx-auto h-8 w-8 mb-2 opacity-50" />
+                  <p>No applications yet</p>
                 </div>
-              ))}
+              ) : (
+                recentApplications.map((app) => (
+                  <div
+                    key={app.id}
+                    className="flex items-center gap-4 rounded-lg border border-border p-4 transition-smooth hover:border-primary/50 hover:shadow-md cursor-pointer"
+                    onClick={() => navigate("/candidates")}
+                  >
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-primary text-primary-foreground">
+                      <span className="text-sm font-semibold">{app.full_name.split(" ").map((n: string) => n[0]).join("")}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{app.full_name}</p>
+                      <p className="text-sm text-muted-foreground truncate">{app.jobs?.title || "Unknown Position"}</p>
+                    </div>
+                    <div className="text-right">
+                      {getStatusBadge(app.status)}
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {new Date(app.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </Card>
 
@@ -192,68 +240,63 @@ const Dashboard = () => {
           <Card className="p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold">Upcoming Interviews</h2>
-              <Button variant="outline" size="sm">Schedule New</Button>
+              <Button variant="outline" size="sm" onClick={() => navigate("/interviews")}>View All</Button>
             </div>
             <div className="space-y-4">
-              {upcomingInterviews.map((interview) => (
-                <div
-                  key={interview.id}
-                  className="flex items-start gap-4 rounded-lg border border-border p-4 transition-smooth hover:border-accent/50 hover:shadow-md"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10">
-                    <Calendar className="h-5 w-5 text-accent" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{interview.candidate}</p>
-                    <p className="text-sm text-muted-foreground truncate">{interview.position}</p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                      <p className="text-xs text-muted-foreground">{interview.time}</p>
-                      <Badge variant="outline" className="ml-auto text-xs">
-                        {interview.type}
-                      </Badge>
+              {upcomingInterviews.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Calendar className="mx-auto h-8 w-8 mb-2 opacity-50" />
+                  <p>No upcoming interviews</p>
+                </div>
+              ) : (
+                upcomingInterviews.map((interview) => (
+                  <div
+                    key={interview.id}
+                    className="flex items-start gap-4 rounded-lg border border-border p-4 transition-smooth hover:border-accent/50 hover:shadow-md cursor-pointer"
+                    onClick={() => navigate("/interviews")}
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10">
+                      <Calendar className="h-5 w-5 text-accent" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{interview.candidate_name}</p>
+                      <p className="text-sm text-muted-foreground truncate">{interview.jobs?.title || "Unknown Position"}</p>
+                      <div className="mt-2 flex items-center gap-2">
+                        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(interview.interview_date).toLocaleDateString()} at {interview.interview_time}
+                        </p>
+                        <Badge variant="outline" className="ml-auto text-xs">
+                          {interview.interview_type}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </Card>
         </div>
 
-        {/* Pipeline Overview */}
-        <Card className="p-6">
-          <h2 className="mb-6 text-xl font-semibold">Hiring Pipeline</h2>
-          <div className="grid gap-4 sm:grid-cols-4">
-            <div className="rounded-lg border border-border p-4 text-center">
-              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-secondary">
-                <Users className="h-5 w-5 text-foreground" />
-              </div>
-              <p className="text-2xl font-bold">248</p>
-              <p className="text-sm text-muted-foreground">Applied</p>
+        {/* Quick Actions */}
+        {stats.activeJobs === 0 && (
+          <Card className="p-6 bg-accent/5 border-accent/20">
+            <div className="text-center">
+              <Briefcase className="mx-auto h-12 w-12 text-accent mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Get Started</h3>
+              <p className="text-muted-foreground mb-4">
+                Post your first job to start receiving applications
+              </p>
+              <Button 
+                className="bg-gradient-primary"
+                onClick={() => navigate("/post-job")}
+              >
+                <Briefcase className="mr-2 h-4 w-4" />
+                Post Your First Job
+              </Button>
             </div>
-            <div className="rounded-lg border border-border p-4 text-center">
-              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <Clock className="h-5 w-5 text-primary" />
-              </div>
-              <p className="text-2xl font-bold">84</p>
-              <p className="text-sm text-muted-foreground">Screening</p>
-            </div>
-            <div className="rounded-lg border border-border p-4 text-center">
-              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
-                <Calendar className="h-5 w-5 text-accent" />
-              </div>
-              <p className="text-2xl font-bold">42</p>
-              <p className="text-sm text-muted-foreground">Interview</p>
-            </div>
-            <div className="rounded-lg border border-border p-4 text-center">
-              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
-                <CheckCircle2 className="h-5 w-5 text-success" />
-              </div>
-              <p className="text-2xl font-bold">6</p>
-              <p className="text-sm text-muted-foreground">Offer</p>
-            </div>
-          </div>
-        </Card>
+          </Card>
+        )}
       </div>
     );
   };

@@ -1,92 +1,73 @@
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Calendar,
   Clock,
   Video,
   MapPin,
   Plus,
-  ExternalLink
+  ExternalLink,
+  Loader2
 } from "lucide-react";
 
-const interviews = [
-  {
-    id: 1,
-    candidate: "Sarah Johnson",
-    position: "Senior Frontend Developer",
-    date: "2024-01-20",
-    time: "2:00 PM",
-    duration: "45 min",
-    type: "zoom",
-    interviewer: "John Doe",
-    status: "upcoming",
-    meetingLink: "https://zoom.us/j/123456789"
-  },
-  {
-    id: 2,
-    candidate: "David Kim",
-    position: "DevOps Engineer",
-    date: "2024-01-21",
-    time: "10:00 AM",
-    duration: "60 min",
-    type: "in-person",
-    interviewer: "Jane Smith",
-    location: "Conference Room A",
-    status: "upcoming"
-  },
-  {
-    id: 3,
-    candidate: "Alex Turner",
-    position: "Backend Developer",
-    date: "2024-01-21",
-    time: "3:30 PM",
-    duration: "45 min",
-    type: "zoom",
-    interviewer: "Mike Wilson",
-    status: "upcoming",
-    meetingLink: "https://zoom.us/j/987654321"
-  },
-  {
-    id: 4,
-    candidate: "Emily Rodriguez",
-    position: "Full Stack Engineer",
-    date: "2024-01-22",
-    time: "11:00 AM",
-    duration: "60 min",
-    type: "zoom",
-    interviewer: "Sarah Brown",
-    status: "upcoming",
-    meetingLink: "https://zoom.us/j/456789123"
-  },
-  {
-    id: 5,
-    candidate: "Michael Chen",
-    position: "Product Designer",
-    date: "2024-01-18",
-    time: "2:00 PM",
-    duration: "45 min",
-    type: "zoom",
-    interviewer: "John Doe",
-    status: "completed"
-  },
-  {
-    id: 6,
-    candidate: "Jessica Martinez",
-    position: "Marketing Manager",
-    date: "2024-01-19",
-    time: "4:00 PM",
-    duration: "30 min",
-    type: "in-person",
-    interviewer: "Jane Smith",
-    location: "Conference Room B",
-    status: "completed"
-  }
-];
-
 const Interviews = () => {
-  const upcomingInterviews = interviews.filter(i => i.status === "upcoming");
-  const completedInterviews = interviews.filter(i => i.status === "completed");
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [interviews, setInterviews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchInterviews();
+    }
+  }, [user]);
+
+  const fetchInterviews = async () => {
+    try {
+      setLoading(true);
+
+      // Get user's jobs first
+      const { data: jobsData } = await supabase
+        .from("jobs")
+        .select("id")
+        .eq("user_id", user!.id);
+
+      const jobIds = jobsData?.map(j => j.id) || [];
+
+      if (jobIds.length > 0) {
+        // Fetch interviews for these jobs
+        const { data, error } = await supabase
+          .from("interviews")
+          .select("*, jobs(title, company)")
+          .in("job_id", jobIds)
+          .order("interview_date", { ascending: true });
+
+        if (error) throw error;
+        setInterviews(data || []);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error loading interviews",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const today = new Date().toISOString().split("T")[0];
+  const upcomingInterviews = interviews.filter(i => 
+    i.status === "scheduled" && i.interview_date >= today
+  );
+  const completedInterviews = interviews.filter(i => 
+    i.status === "completed" || i.interview_date < today
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-500">
@@ -130,112 +111,131 @@ const Interviews = () => {
         {/* Upcoming Interviews */}
         <div>
           <h2 className="mb-4 text-2xl font-semibold">Upcoming Interviews</h2>
-          <div className="grid gap-4 lg:grid-cols-2">
-            {upcomingInterviews.map((interview) => (
-              <Card key={interview.id} className="p-6 card-hover">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-start gap-3">
-                      <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${
-                        interview.type === "zoom" ? "bg-primary/10" : "bg-accent/10"
-                      }`}>
-                        {interview.type === "zoom" ? (
-                          <Video className={`h-6 w-6 ${
-                            interview.type === "zoom" ? "text-primary" : "text-accent"
-                          }`} />
-                        ) : (
-                          <MapPin className="h-6 w-6 text-accent" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{interview.candidate}</h3>
-                        <p className="text-sm text-muted-foreground">{interview.position}</p>
-                        <Badge variant="outline" className="mt-2">
-                          {interview.type === "zoom" ? "Zoom" : "In-person"}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 space-y-2 text-sm">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>{new Date(interview.date).toLocaleDateString("en-US", { 
-                          weekday: "short", 
-                          month: "short", 
-                          day: "numeric" 
-                        })}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        <span>{interview.time} • {interview.duration}</span>
-                      </div>
-                      {interview.location && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          <span>{interview.location}</span>
+          {loading ? (
+            <Card className="p-12 text-center">
+              <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+              <p className="mt-4 text-muted-foreground">Loading interviews...</p>
+            </Card>
+          ) : upcomingInterviews.length === 0 ? (
+            <Card className="p-12 text-center">
+              <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold">No upcoming interviews</h3>
+              <p className="mt-2 text-muted-foreground">
+                Schedule interviews with your candidates
+              </p>
+            </Card>
+          ) : (
+            <div className="grid gap-4 lg:grid-cols-2">
+              {upcomingInterviews.map((interview) => (
+                <Card key={interview.id} className="p-6 card-hover">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-start gap-3">
+                        <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${
+                          interview.interview_type === "zoom" ? "bg-primary/10" : "bg-accent/10"
+                        }`}>
+                          {interview.interview_type === "zoom" ? (
+                            <Video className="h-6 w-6 text-primary" />
+                          ) : (
+                            <MapPin className="h-6 w-6 text-accent" />
+                          )}
                         </div>
-                      )}
-                      <p className="text-muted-foreground">
-                        Interviewer: <span className="font-medium text-foreground">{interview.interviewer}</span>
-                      </p>
-                    </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{interview.candidate_name}</h3>
+                          <p className="text-sm text-muted-foreground">{interview.jobs?.title || "Unknown Position"}</p>
+                          <Badge variant="outline" className="mt-2">
+                            {interview.interview_type === "zoom" ? "Zoom" : interview.interview_type === "in-person" ? "In-person" : interview.interview_type}
+                          </Badge>
+                        </div>
+                      </div>
 
-                    <div className="mt-4 flex gap-2">
-                      {interview.meetingLink && (
-                        <Button variant="outline" size="sm" className="flex-1" asChild>
-                          <a href={interview.meetingLink} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Join Meeting
-                          </a>
+                      <div className="mt-4 space-y-2 text-sm">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          <span>{new Date(interview.interview_date).toLocaleDateString("en-US", { 
+                            weekday: "short", 
+                            month: "short", 
+                            day: "numeric" 
+                          })}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          <span>{interview.interview_time} • {interview.duration_minutes} min</span>
+                        </div>
+                        {interview.location && (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <MapPin className="h-4 w-4" />
+                            <span>{interview.location}</span>
+                          </div>
+                        )}
+                        <p className="text-muted-foreground">
+                          Interviewer: <span className="font-medium text-foreground">{interview.interviewer_name}</span>
+                        </p>
+                      </div>
+
+                      <div className="mt-4 flex gap-2">
+                        {interview.meeting_link && (
+                          <Button variant="outline" size="sm" className="flex-1" asChild>
+                            <a href={interview.meeting_link} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="mr-2 h-4 w-4" />
+                              Join Meeting
+                            </a>
+                          </Button>
+                        )}
+                        <Button 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => window.location.href = `mailto:${interview.candidate_email}?subject=Interview for ${interview.jobs?.title}`}
+                        >
+                          Contact
                         </Button>
-                      )}
-                      <Button size="sm" className="flex-1">
-                        Reschedule
-                      </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Completed Interviews */}
-        <div>
-          <h2 className="mb-4 text-2xl font-semibold">Completed Interviews</h2>
-          <div className="grid gap-4">
-            {completedInterviews.map((interview) => (
-              <Card key={interview.id} className="p-4 opacity-75">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
-                      {interview.type === "zoom" ? (
-                        <Video className="h-5 w-5 text-muted-foreground" />
-                      ) : (
-                        <MapPin className="h-5 w-5 text-muted-foreground" />
+        {completedInterviews.length > 0 && (
+          <div>
+            <h2 className="mb-4 text-2xl font-semibold">Completed Interviews</h2>
+            <div className="grid gap-4">
+              {completedInterviews.map((interview) => (
+                <Card key={interview.id} className="p-4 opacity-75">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+                        {interview.interview_type === "zoom" ? (
+                          <Video className="h-5 w-5 text-muted-foreground" />
+                        ) : (
+                          <MapPin className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium">{interview.candidate_name}</p>
+                        <p className="text-sm text-muted-foreground">{interview.jobs?.title || "Unknown Position"}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(interview.interview_date).toLocaleDateString("en-US", { 
+                          month: "short", 
+                          day: "numeric" 
+                        })} at {interview.interview_time}
+                      </p>
+                      {interview.notes && (
+                        <p className="text-xs text-muted-foreground mt-1">Has notes</p>
                       )}
                     </div>
-                    <div>
-                      <p className="font-medium">{interview.candidate}</p>
-                      <p className="text-sm text-muted-foreground">{interview.position}</p>
-                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(interview.date).toLocaleDateString("en-US", { 
-                        month: "short", 
-                        day: "numeric" 
-                      })} at {interview.time}
-                    </p>
-                    <Button variant="ghost" size="sm" className="mt-1">
-                      View Notes
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     );
   };
