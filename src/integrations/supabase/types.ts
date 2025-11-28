@@ -14,6 +14,134 @@ export type Database = {
   }
   public: {
     Tables: {
+      applications: {
+        Row: {
+          cover_letter: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          job_id: string
+          notes: string | null
+          phone: string | null
+          rating: number | null
+          resume_url: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cover_letter?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          job_id: string
+          notes?: string | null
+          phone?: string | null
+          rating?: number | null
+          resume_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cover_letter?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          job_id?: string
+          notes?: string | null
+          phone?: string | null
+          rating?: number | null
+          resume_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interviews: {
+        Row: {
+          application_id: string
+          candidate_email: string
+          candidate_name: string
+          created_at: string
+          duration_minutes: number
+          id: string
+          interview_date: string
+          interview_time: string
+          interview_type: string
+          interviewer_name: string
+          job_id: string
+          location: string | null
+          meeting_link: string | null
+          notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          application_id: string
+          candidate_email: string
+          candidate_name: string
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          interview_date: string
+          interview_time: string
+          interview_type?: string
+          interviewer_name: string
+          job_id: string
+          location?: string | null
+          meeting_link?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string
+          candidate_email?: string
+          candidate_name?: string
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          interview_date?: string
+          interview_time?: string
+          interview_type?: string
+          interviewer_name?: string
+          job_id?: string
+          location?: string | null
+          meeting_link?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interviews_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interviews_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           applicants_count: number | null

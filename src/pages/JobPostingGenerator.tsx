@@ -37,8 +37,6 @@ const JobPostingGenerator = () => {
   const [generatedPosting, setGeneratedPosting] = useState("");
 
   const handleGenerate = async () => {
-    console.log("Generate button clicked with data:", formData);
-    
     if (!formData.jobTitle || !formData.company || !formData.requirements || !formData.responsibilities) {
       toast({
         title: "Missing Information",
@@ -50,27 +48,13 @@ const JobPostingGenerator = () => {
 
     setLoading(true);
     try {
-      console.log("Calling generate-job-posting edge function...");
       const { data, error } = await supabase.functions.invoke("generate-job-posting", {
         body: formData,
       });
 
-      console.log("Edge function response:", { data, error });
-
-      if (error) {
-        console.error("Edge function error:", error);
-        throw error;
-      }
-
-      if (data?.error) {
-        console.error("Data contains error:", data.error);
-        throw new Error(data.error);
-      }
-
-      if (!data?.posting) {
-        console.error("No posting in response:", data);
-        throw new Error("No job posting generated");
-      }
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (!data?.posting) throw new Error("No job posting generated");
 
       setGeneratedPosting(data.posting);
       toast({
@@ -78,7 +62,6 @@ const JobPostingGenerator = () => {
         description: "Your AI-powered job posting is ready",
       });
     } catch (error) {
-      console.error("Error generating job posting:", error);
       toast({
         title: "Generation Failed",
         description: error instanceof Error ? error.message : "Please try again",

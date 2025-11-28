@@ -1,230 +1,75 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { IndustryTabs } from "@/components/IndustryTabs";
 import { JobCard, Job } from "@/components/JobCard";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Search, 
   Plus,
   SlidersHorizontal,
   TrendingUp,
   Shield,
-  Zap
+  Zap,
+  Loader2
 } from "lucide-react";
-
-const allJobs: Job[] = [
-  {
-    id: 1,
-    title: "Senior Frontend Developer",
-    department: "Engineering",
-    industry: "technology",
-    location: "Remote",
-    type: "Full-time",
-    salary: "$120k - $160k",
-    applicants: 45,
-    status: "active",
-    postedDate: "2 days ago",
-    source: "LinkedIn",
-    isVerified: true,
-    qualityScore: 9,
-    duplicateCount: 1,
-    responseRate: 85
-  },
-  {
-    id: 2,
-    title: "Product Designer",
-    department: "Design",
-    industry: "design",
-    location: "New York, NY",
-    type: "Full-time",
-    salary: "$100k - $140k",
-    applicants: 32,
-    status: "active",
-    postedDate: "5 days ago",
-    source: "Indeed",
-    isVerified: true,
-    qualityScore: 8,
-    duplicateCount: 2,
-    responseRate: 72
-  },
-  {
-    id: 3,
-    title: "Full Stack Engineer",
-    department: "Engineering",
-    industry: "technology",
-    location: "San Francisco, CA",
-    type: "Full-time",
-    salary: "$130k - $180k",
-    applicants: 68,
-    status: "active",
-    postedDate: "1 week ago",
-    source: "AngelList",
-    isVerified: true,
-    qualityScore: 9,
-    duplicateCount: 3,
-    responseRate: 78
-  },
-  {
-    id: 4,
-    title: "DevOps Engineer",
-    department: "Engineering",
-    industry: "technology",
-    location: "Remote",
-    type: "Full-time",
-    salary: "$110k - $150k",
-    applicants: 28,
-    status: "active",
-    postedDate: "3 days ago",
-    source: "GitHub Jobs",
-    isVerified: true,
-    qualityScore: 8,
-    duplicateCount: 1,
-    responseRate: 82
-  },
-  {
-    id: 5,
-    title: "Marketing Manager",
-    department: "Marketing",
-    industry: "marketing",
-    location: "Austin, TX",
-    type: "Full-time",
-    salary: "$90k - $120k",
-    applicants: 19,
-    status: "active",
-    postedDate: "4 days ago",
-    source: "LinkedIn",
-    isVerified: true,
-    qualityScore: 7,
-    duplicateCount: 2,
-    responseRate: 65
-  },
-  {
-    id: 6,
-    title: "Backend Developer",
-    department: "Engineering",
-    industry: "technology",
-    location: "Remote",
-    type: "Contract",
-    salary: "$100k - $140k",
-    applicants: 51,
-    status: "active",
-    postedDate: "6 days ago",
-    source: "Indeed",
-    isVerified: false,
-    qualityScore: 6,
-    duplicateCount: 4,
-    responseRate: 45
-  },
-  {
-    id: 7,
-    title: "UX Researcher",
-    department: "Design",
-    industry: "design",
-    location: "Seattle, WA",
-    type: "Full-time",
-    salary: "$95k - $130k",
-    applicants: 24,
-    status: "active",
-    postedDate: "2 days ago",
-    source: "LinkedIn",
-    isVerified: true,
-    qualityScore: 8,
-    duplicateCount: 1,
-    responseRate: 80
-  },
-  {
-    id: 8,
-    title: "Registered Nurse",
-    department: "Healthcare",
-    industry: "healthcare",
-    location: "Boston, MA",
-    type: "Full-time",
-    salary: "$70k - $95k",
-    applicants: 37,
-    status: "active",
-    postedDate: "1 day ago",
-    source: "Indeed",
-    isVerified: true,
-    qualityScore: 9,
-    duplicateCount: 1,
-    responseRate: 90
-  },
-  {
-    id: 9,
-    title: "High School Math Teacher",
-    department: "Education",
-    industry: "education",
-    location: "Chicago, IL",
-    type: "Full-time",
-    salary: "$55k - $75k",
-    applicants: 15,
-    status: "active",
-    postedDate: "3 days ago",
-    source: "LinkedIn",
-    isVerified: true,
-    qualityScore: 8,
-    duplicateCount: 1,
-    responseRate: 75
-  },
-  {
-    id: 10,
-    title: "Store Manager",
-    department: "Retail",
-    industry: "retail",
-    location: "Miami, FL",
-    type: "Full-time",
-    salary: "$50k - $70k",
-    applicants: 42,
-    status: "active",
-    postedDate: "5 days ago",
-    source: "Indeed",
-    isVerified: true,
-    qualityScore: 7,
-    duplicateCount: 2,
-    responseRate: 68
-  },
-  {
-    id: 11,
-    title: "Mechanical Engineer",
-    department: "Engineering",
-    industry: "engineering",
-    location: "Detroit, MI",
-    type: "Full-time",
-    salary: "$80k - $110k",
-    applicants: 29,
-    status: "active",
-    postedDate: "4 days ago",
-    source: "LinkedIn",
-    isVerified: true,
-    qualityScore: 8,
-    duplicateCount: 1,
-    responseRate: 73
-  },
-  {
-    id: 12,
-    title: "Content Marketing Specialist",
-    department: "Marketing",
-    industry: "marketing",
-    location: "Remote",
-    type: "Full-time",
-    salary: "$65k - $85k",
-    applicants: 56,
-    status: "active",
-    postedDate: "1 week ago",
-    source: "AngelList",
-    isVerified: false,
-    qualityScore: 6,
-    duplicateCount: 3,
-    responseRate: 52
-  }
-];
 
 const Jobs = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedIndustry, setSelectedIndustry] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [allJobs, setAllJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  const fetchJobs = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("*")
+        .eq("status", "active")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Transform database jobs to Job type
+      const transformedJobs: Job[] = (data || []).map((job, index) => ({
+        id: index + 1,
+        title: job.title,
+        department: job.department || "General",
+        industry: "technology", // Default to technology, could be enhanced
+        location: job.location || "Remote",
+        type: job.job_type || "Full-time",
+        salary: job.salary || "Competitive",
+        applicants: job.applicants_count || 0,
+        status: "active",
+        postedDate: new Date(job.created_at).toLocaleDateString(),
+        source: job.company,
+        isVerified: true,
+        qualityScore: 9,
+        duplicateCount: 0,
+        responseRate: 85
+      }));
+
+      setAllJobs(transformedJobs);
+    } catch (error: any) {
+      toast({
+        title: "Error loading jobs",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredJobs = allJobs.filter((job) => {
     const matchesIndustry = selectedIndustry === "all" || job.industry === selectedIndustry;
@@ -341,7 +186,12 @@ const Jobs = () => {
       </Card>
 
       {/* Jobs Grid */}
-      {filteredJobs.length > 0 ? (
+      {loading ? (
+        <Card className="p-12 text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+          <p className="mt-4 text-muted-foreground">Loading jobs...</p>
+        </Card>
+      ) : filteredJobs.length > 0 ? (
         <div className="grid gap-6 lg:grid-cols-2">
           {filteredJobs.map((job) => (
             <JobCard key={job.id} job={job} />
@@ -354,8 +204,19 @@ const Jobs = () => {
           </div>
           <h3 className="mt-4 text-lg font-semibold">No jobs found</h3>
           <p className="mt-2 text-muted-foreground">
-            Try adjusting your filters or search terms
+            {allJobs.length === 0 
+              ? "No jobs posted yet. Be the first to post a job!" 
+              : "Try adjusting your filters or search terms"}
           </p>
+          {allJobs.length === 0 && (
+            <Button 
+              className="mt-4 bg-gradient-primary"
+              onClick={() => navigate("/post-job")}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Post Your First Job
+            </Button>
+          )}
         </Card>
       )}
     </div>
