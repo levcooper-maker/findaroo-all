@@ -9,13 +9,15 @@ import {
   Menu,
   X,
   Sparkles,
-  FileText
+  FileText,
+  LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Jobs", href: "/jobs", icon: Briefcase },
   { name: "Candidates", href: "/candidates", icon: Users },
   { name: "Interviews", href: "/interviews", icon: Calendar },
@@ -27,6 +29,7 @@ const navigation = [
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { profile, signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -51,7 +54,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       >
         <div className="flex h-full flex-col">
           <div className="flex h-16 items-center border-b border-border px-6">
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/dashboard" className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary">
                 <Briefcase className="h-5 w-5 text-primary-foreground" />
               </div>
@@ -82,15 +85,28 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           </nav>
 
           <div className="border-t border-border p-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 mb-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-accent">
-                <span className="text-sm font-semibold text-accent-foreground">JD</span>
+                <span className="text-sm font-semibold text-accent-foreground">
+                  {profile?.full_name.charAt(0).toUpperCase() || "U"}
+                </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">John Doe</p>
-                <p className="text-xs text-muted-foreground truncate">Employer</p>
+                <p className="text-sm font-medium truncate">{profile?.full_name || "User"}</p>
+                <p className="text-xs text-muted-foreground truncate capitalize">
+                  {profile?.user_type === "job_seeker" ? "Job Seeker" : "Employer"}
+                </p>
               </div>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="w-full justify-start text-muted-foreground hover:text-destructive"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
           </div>
         </div>
       </aside>
