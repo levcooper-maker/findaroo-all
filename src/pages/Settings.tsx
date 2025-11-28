@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Settings as SettingsIcon,
   Bell,
@@ -13,6 +14,15 @@ import {
 } from "lucide-react";
 
 const Settings = () => {
+  const { toast } = useToast();
+
+  const handleIntegrationConnect = (platform: string) => {
+    toast({
+      title: "Coming Soon",
+      description: `${platform} integration is currently under development. Stay tuned!`,
+    });
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-500">
         {/* Header */}
@@ -47,7 +57,7 @@ const Settings = () => {
                     <p className="text-sm text-muted-foreground">Import jobs and candidates</p>
                   </div>
                 </div>
-                <Button variant="outline">Connect</Button>
+                <Button variant="outline" onClick={() => handleIntegrationConnect("LinkedIn")}>Connect</Button>
               </div>
 
               <div className="flex items-center justify-between rounded-lg border border-border p-4">
@@ -60,7 +70,7 @@ const Settings = () => {
                     <p className="text-sm text-muted-foreground">Sync job postings</p>
                   </div>
                 </div>
-                <Button variant="outline">Connect</Button>
+                <Button variant="outline" onClick={() => handleIntegrationConnect("Indeed")}>Connect</Button>
               </div>
 
               <div className="flex items-center justify-between rounded-lg border border-accent/20 bg-accent/5 p-4">
@@ -73,7 +83,7 @@ const Settings = () => {
                     <p className="text-sm text-muted-foreground">Schedule interviews automatically</p>
                   </div>
                 </div>
-                <Button className="bg-gradient-primary">Connect</Button>
+                <Button className="bg-gradient-primary" onClick={() => handleIntegrationConnect("Calendly")}>Connect</Button>
               </div>
 
               <div className="flex items-center justify-between rounded-lg border border-border p-4">
@@ -86,7 +96,7 @@ const Settings = () => {
                     <p className="text-sm text-muted-foreground">Calendar and email integration</p>
                   </div>
                 </div>
-                <Button variant="outline">Connect</Button>
+                <Button variant="outline" onClick={() => handleIntegrationConnect("Google Workspace")}>Connect</Button>
               </div>
 
               <div className="flex items-center justify-between rounded-lg border border-border p-4">
@@ -99,7 +109,7 @@ const Settings = () => {
                     <p className="text-sm text-muted-foreground">Calendar integration</p>
                   </div>
                 </div>
-                <Button variant="outline">Connect</Button>
+                <Button variant="outline" onClick={() => handleIntegrationConnect("Microsoft Outlook")}>Connect</Button>
               </div>
             </div>
           </Card>
