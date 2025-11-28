@@ -1,4 +1,3 @@
-import { Layout } from "@/components/Layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -108,8 +107,7 @@ const getStageBadge = (stage: string) => {
 
 const Candidates = () => {
   return (
-    <Layout>
-      <div className="space-y-6 animate-in fade-in-50 duration-500">
+    <div className="space-y-6 animate-in fade-in-50 duration-500">
         {/* Header */}
         <div>
           <h1 className="text-4xl font-bold">Candidates</h1>
@@ -210,7 +208,7 @@ const Candidates = () => {
           ))}
         </div>
       </div>
-    </Layout>
+    </div>
   );
 };
 

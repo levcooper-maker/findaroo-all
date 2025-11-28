@@ -1,4 +1,3 @@
-import { Layout } from "@/components/Layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -90,8 +89,7 @@ const jobs = [
 
 const Jobs = () => {
   return (
-    <Layout>
-      <div className="space-y-6 animate-in fade-in-50 duration-500">
+    <div className="space-y-6 animate-in fade-in-50 duration-500">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -182,7 +180,7 @@ const Jobs = () => {
           ))}
         </div>
       </div>
-    </Layout>
+    </div>
   );
 };
 

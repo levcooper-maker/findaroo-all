@@ -1,4 +1,3 @@
-import { Layout } from "@/components/Layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,8 +14,7 @@ import {
 
 const Settings = () => {
   return (
-    <Layout>
-      <div className="space-y-6 animate-in fade-in-50 duration-500">
+    <div className="space-y-6 animate-in fade-in-50 duration-500">
         {/* Header */}
         <div>
           <h1 className="text-4xl font-bold">Settings</h1>
@@ -189,7 +187,7 @@ const Settings = () => {
           </div>
         </Card>
       </div>
-    </Layout>
+    </div>
   );
 };
 
