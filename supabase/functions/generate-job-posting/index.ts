@@ -15,6 +15,10 @@ const jobPostingSchema = z.object({
   salary: z.string().trim().max(200).optional(),
   requirements: z.string().trim().min(1, "Requirements are required").max(5000),
   responsibilities: z.string().trim().min(1, "Responsibilities are required").max(5000),
+  benefits: z.string().trim().max(3000).default(""),
+  workArrangement: z.string().trim().max(50).default("Remote"),
+  companyDescription: z.string().trim().max(2000).default(""),
+  experienceLevel: z.string().trim().max(50).default("Mid-level"),
 });
 
 serve(async (req) => {
@@ -33,7 +37,7 @@ serve(async (req) => {
       );
     }
 
-    const { jobTitle, company, location, jobType, department, salary, requirements, responsibilities } = validationResult.data;
+    const { jobTitle, company, location, jobType, department, salary, requirements, responsibilities, benefits, workArrangement, companyDescription, experienceLevel } = validationResult.data;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -57,9 +61,13 @@ serve(async (req) => {
 Job Title: ${jobTitle}
 Company: ${company}
 Location: ${location}
+Work Arrangement: ${workArrangement}
 Job Type: ${jobType}
+Experience Level: ${experienceLevel}
 Department: ${department}
 ${salary ? `Salary Range: ${salary}` : ''}
+
+${companyDescription ? `Company Description:\n${companyDescription}\n` : ''}
 
 Key Requirements:
 ${requirements}
@@ -67,12 +75,15 @@ ${requirements}
 Main Responsibilities:
 ${responsibilities}
 
+${benefits ? `Benefits & Perks:\n${benefits}\n` : ''}
+
 Please structure the posting with:
 1. An engaging opening paragraph about the role and company
 2. "What You'll Do" section with responsibilities
-3. "What We're Looking For" section with requirements
-4. "Why Join Us" section highlighting benefits and culture
-5. Application instructions
+3. "What We're Looking For" section with requirements and experience level
+4. "Why Join Us" section highlighting benefits, culture, and work arrangement
+5. "Compensation & Benefits" section if salary or benefits are provided
+6. Application instructions
 
 Use professional yet approachable language that attracts top talent.`;
 

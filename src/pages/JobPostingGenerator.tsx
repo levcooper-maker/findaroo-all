@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,10 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Sparkles, Copy, Download } from "lucide-react";
+import { Loader2, Sparkles, Copy, Download, Send } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const JobPostingGenerator = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     jobTitle: "",
@@ -20,6 +29,10 @@ const JobPostingGenerator = () => {
     salary: "",
     requirements: "",
     responsibilities: "",
+    benefits: "",
+    workArrangement: "Remote",
+    companyDescription: "",
+    experienceLevel: "Mid-level",
   });
   const [generatedPosting, setGeneratedPosting] = useState("");
 
@@ -80,6 +93,14 @@ const JobPostingGenerator = () => {
     document.body.removeChild(element);
   };
 
+  const handlePostJob = () => {
+    toast({
+      title: "Posting Job",
+      description: "Redirecting to post your job...",
+    });
+    navigate("/jobs");
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-500">
       <div>
@@ -118,20 +139,66 @@ const JobPostingGenerator = () => {
                 <Label htmlFor="location">Location</Label>
                 <Input
                   id="location"
-                  placeholder="e.g., Remote"
+                  placeholder="e.g., San Francisco, CA"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 />
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="workArrangement">Work Arrangement</Label>
+                <Select 
+                  value={formData.workArrangement} 
+                  onValueChange={(value) => setFormData({ ...formData, workArrangement: value })}
+                >
+                  <SelectTrigger id="workArrangement">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Remote">Remote</SelectItem>
+                    <SelectItem value="Hybrid">Hybrid</SelectItem>
+                    <SelectItem value="On-site">On-site</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
                 <Label htmlFor="jobType">Job Type</Label>
-                <Input
-                  id="jobType"
-                  placeholder="e.g., Full-time"
-                  value={formData.jobType}
-                  onChange={(e) => setFormData({ ...formData, jobType: e.target.value })}
-                />
+                <Select 
+                  value={formData.jobType} 
+                  onValueChange={(value) => setFormData({ ...formData, jobType: value })}
+                >
+                  <SelectTrigger id="jobType">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Full-time">Full-time</SelectItem>
+                    <SelectItem value="Part-time">Part-time</SelectItem>
+                    <SelectItem value="Contract">Contract</SelectItem>
+                    <SelectItem value="Internship">Internship</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="experienceLevel">Experience Level</Label>
+                <Select 
+                  value={formData.experienceLevel} 
+                  onValueChange={(value) => setFormData({ ...formData, experienceLevel: value })}
+                >
+                  <SelectTrigger id="experienceLevel">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Entry-level">Entry-level</SelectItem>
+                    <SelectItem value="Mid-level">Mid-level</SelectItem>
+                    <SelectItem value="Senior">Senior</SelectItem>
+                    <SelectItem value="Lead">Lead</SelectItem>
+                    <SelectItem value="Executive">Executive</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -179,6 +246,28 @@ const JobPostingGenerator = () => {
               />
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="companyDescription">Company Description</Label>
+              <Textarea
+                id="companyDescription"
+                placeholder="Tell candidates about your company culture, mission, and values..."
+                rows={3}
+                value={formData.companyDescription}
+                onChange={(e) => setFormData({ ...formData, companyDescription: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="benefits">Benefits & Perks</Label>
+              <Textarea
+                id="benefits"
+                placeholder="List benefits like health insurance, 401k, remote work, PTO, etc..."
+                rows={3}
+                value={formData.benefits}
+                onChange={(e) => setFormData({ ...formData, benefits: e.target.value })}
+              />
+            </div>
+
             <Button
               onClick={handleGenerate}
               disabled={loading}
@@ -211,6 +300,10 @@ const JobPostingGenerator = () => {
                   </Button>
                   <Button variant="outline" size="sm" onClick={downloadAsText}>
                     <Download className="h-4 w-4" />
+                  </Button>
+                  <Button size="sm" onClick={handlePostJob} className="bg-gradient-primary">
+                    <Send className="mr-2 h-4 w-4" />
+                    Post Job
                   </Button>
                 </div>
               )}
