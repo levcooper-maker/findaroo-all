@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,11 +13,27 @@ import {
   Mail,
   Calendar,
   Zap,
-  Sparkles
+  Sparkles,
+  Copy,
+  Check,
+  ExternalLink
 } from "lucide-react";
 
 const Settings = () => {
   const { toast } = useToast();
+  const [copiedFeedUrl, setCopiedFeedUrl] = useState(false);
+
+  const indeedFeedUrl = `https://etrgckxcxpwkjbnxmvmf.supabase.co/functions/v1/indeed-job-feed`;
+
+  const copyFeedUrl = async () => {
+    await navigator.clipboard.writeText(indeedFeedUrl);
+    setCopiedFeedUrl(true);
+    toast({
+      title: "Copied!",
+      description: "Indeed feed URL copied to clipboard",
+    });
+    setTimeout(() => setCopiedFeedUrl(false), 2000);
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-500">
@@ -41,21 +58,46 @@ const Settings = () => {
               </div>
             </div>
 
-            <div className="rounded-lg border border-accent/20 bg-accent/5 p-6 mb-4">
-              <div className="flex items-start gap-3">
-                <Sparkles className="h-5 w-5 text-accent mt-0.5" />
-                <div>
-                  <h3 className="font-semibold mb-1">Coming Soon</h3>
-                  <p className="text-sm text-muted-foreground">
-                    External integrations require OAuth configuration and API credentials. 
-                    These features are planned for future releases.
+            <div className="space-y-4">
+              {/* Indeed Integration - Active */}
+              <div className="rounded-lg border border-green-500/30 bg-green-500/5 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2557A7]">
+                      <span className="text-sm font-bold text-white">in</span>
+                    </div>
+                    <div>
+                      <p className="font-medium">Indeed</p>
+                      <p className="text-sm text-muted-foreground">XML job feed for Indeed</p>
+                    </div>
+                  </div>
+                  <Badge className="bg-green-500/10 text-green-500 border-green-500/20">Active</Badge>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Feed URL (submit to Indeed Employer Center)</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      value={indeedFeedUrl} 
+                      readOnly 
+                      className="font-mono text-xs bg-muted/50"
+                    />
+                    <Button variant="outline" size="icon" onClick={copyFeedUrl}>
+                      {copiedFeedUrl ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </Button>
+                    <Button variant="outline" size="icon" asChild>
+                      <a href={indeedFeedUrl} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Submit this URL to Indeed's Employer Center to automatically sync your job postings.
                   </p>
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-4 opacity-50">
-              <div className="flex items-center justify-between rounded-lg border border-border p-4">
+              {/* LinkedIn - Planned */}
+              <div className="flex items-center justify-between rounded-lg border border-border p-4 opacity-50">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0077B5]">
                     <span className="text-sm font-bold text-white">in</span>
@@ -63,19 +105,6 @@ const Settings = () => {
                   <div>
                     <p className="font-medium">LinkedIn</p>
                     <p className="text-sm text-muted-foreground">Import jobs and candidates</p>
-                  </div>
-                </div>
-                <Badge variant="secondary">Planned</Badge>
-              </div>
-
-              <div className="flex items-center justify-between rounded-lg border border-border p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2557A7]">
-                    <span className="text-sm font-bold text-white">in</span>
-                  </div>
-                  <div>
-                    <p className="font-medium">Indeed</p>
-                    <p className="text-sm text-muted-foreground">Sync job postings</p>
                   </div>
                 </div>
                 <Badge variant="secondary">Planned</Badge>
